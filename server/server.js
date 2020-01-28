@@ -1,3 +1,5 @@
+const fs = require('fs')
+const path = require('path')
 const express = require('express')
 const app = express()
 
@@ -10,9 +12,22 @@ const iPort = argv.findIndex(param => param === '-p')
 const port = (iPort >= 0 ? argv[iPort + 1] : '') || '3000'
 const clientUrl = `http://localhost:${port}`
 
-app.get('/', function (req, res) {
-    res.send('Hello World')
-})
+
+// check client
+// Необходимо убедиться, что выполнен билд клиентской части приложения.
+const clientFilePath = path.join(__dirname, '../client/dist/index.html')
+try {
+    fs.accessSync(clientFilePath, fs.constants.R_OK)
+    app.get('/:name', (request, response) => {
+        response.sendFile(path.join(__dirname, '../client/dist', request.params.name))
+    })
+    app.get('/', (request, response) => {
+        response.sendFile(clientFilePath)
+    })
+} catch (err) {
+    console.log('*** General error detected: Application build required ***')
+    app.get('/', (request, response) => response.sendFile(path.join(__dirname, 'instruction/build.html')))
+}
 
 // display the usage
 if (bHelp) {
@@ -25,14 +40,15 @@ if (bHelp) {
 
 if (bShow) {
     // Open client in web browser
+    console.log('Auto open the web browser.')
     const open = require('open');
  
     (async () => {
         await open(clientUrl)
-        console.log('Auto open the web browser')
     })();
 } else {
     console.log('Open this URL in your browser:', clientUrl)
 }
 
+console.log('Use Ctrl+C to stop this server.')
 app.listen(port)
