@@ -3,6 +3,17 @@ const path = require('path')
 const express = require('express')
 const app = express()
 
+// Minimum version of NodeJS = 12
+const ver = process.versions.node.split('.')[0];
+if (+ver < 12) {
+    console.error(`*****************************************
+Minimum version of Node.js is 12 for this application.
+Your version: ${process.versions.node}.
+Please, install a new version of Node.js.
+*****************************************`);
+    process.exit(-1);
+}
+
 // command line analys
 const argv = process.argv
 const bShow = !!argv.find(param => param === '-show')
@@ -17,6 +28,10 @@ const clientUrl = `http://localhost:${port}`
 // Необходимо убедиться, что выполнен билд клиентской части приложения.
 const clientFilePath = path.join(__dirname, '../client/dist/index.html')
 try {
+    app.post('/rest/folder', (request, response) => {
+        const {handler} = require('./rest/postFolder');
+        handler.exec(request, response);
+    });
     fs.accessSync(clientFilePath, fs.constants.R_OK)
     app.get('/:name', (request, response) => {
         response.sendFile(path.join(__dirname, '../client/dist', request.params.name))

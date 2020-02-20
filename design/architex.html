@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="Content-Type" value="text/html; charset: utf-8"/>
+  <title>Архитектура Фотоменеджера</title>
+  <style type="text/css">
+  body {font-family: Tahoma;}
+  .tbl {border-collapse: collapse;}
+  .tbl td, .tbl th {border:thin solid silver; padding:0.2em 0.5em;}
+  .tbl th {background: #000; color:#FFF;}
+  .tbl.actual th {background: #007;}
+  </style>
+</head>
+<body>
+  <h1>Фотоменеджер</h1>
+  <h2>Структура таблиц</h2>
+
+  <h3>folder</h3>
+  <p>
+    Для группировки фреймов. Среди прочего, определяют место физического хранения файлов.
+  </p>
+  <table class="tbl actual">
+  <thead>
+    <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>id</td><td>uint</td><td>Уникальный индекс</td></tr>
+    <tr>
+      <td>title</td><td>text</td>
+      <td>Заголовок папки</td>
+    </tr>
+    <tr><td>descr</td><td>text</td><td>Текстовое описание</td></tr>
+    <tr>
+      <td>ownerId</td><td>uint</td>
+      <td>Ссылка на папку-владельца. Или 0, если папка верхнего уровня</td>
+    </tr>
+  </tbody>
+  </table>
+
+  <h3>frame</h3>
+  <p>
+    Фрейм соответствует одной фотографии. Но изображений может включать несколько.
+    Например, пара RAW+JPEG. А так же иконка для быстрого отображения, PSD-версия, обработанный вариант и т.п.
+  </p>
+  <table class="tbl actual">
+  <thead>
+    <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>id</td><td>uint</td><td>Уникальный индекс</td></tr>
+    <tr>
+      <td>folderId</td><td>uint</td>
+      <td>Ссылка на папку-владельца. Соответствует полю folder.id</td>
+    </tr>
+    <tr><td>title</td><td>text, nullable</td><td>Заголовок</td></tr>
+    <tr><td>descr</td><td>text, nullable</td><td>Описание</td></tr>
+    <tr><td>role</td><td>integer</td><td>1=image, 2=video</td></tr>
+    <tr>
+      <td>lat, lng</td> <td>double, nullable</td> <td>GPS-координаты. Необязательные</td>
+    </tr>
+    <tr>
+      <td>quality</td> <td>int</td> <td>Оценка качества. От 0 до 10. По-умолчанию = 5</td>
+    </tr>
+  </tbody>
+  </table>
+
+  <h3>image</h3>
+  <p>
+   Строго соответствует одному файлу изображения.
+  </p>
+  <table class="tbl">
+  <thead>
+    <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>id</td><td>uint</td><td>Уникальный индекс</td></tr>
+    <tr><td>frame_id</td><td>uint</td><td>Ссылка на фрейм</td></tr>
+    <tr><td>t_create</td><td>Timestamp</td><td>Дата и время создания фрейма</td></tr>
+    <tr><td>t_modify</td><td>Timestamp</td><td>Дата и время модификации папки (но не её подчинённых элементов)</td></tr>
+    <tr><td>comment</td><td>text, nullable</td><td>Комментарий к фрейму</td></tr>
+  </tbody>
+  </table>
+
+  <h3>album</h3>
+  <p>
+   Альбом служит для тематического объединения изображений.
+  </p>
+  <table class="tbl">
+  <thead>
+    <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>id</td><td>uint</td><td>Уникальный индекс</td></tr>
+    <tr><td>frame_id</td><td>uint</td><td>Ссылка на фрейм</td></tr>
+    <tr><td>t_create</td><td>Timestamp</td><td>Дата и время создания альбома</td></tr>
+    <tr><td>t_modify</td><td>Timestamp</td><td>Дата и время модификации альбома (но не подчинённых элементов)</td></tr>
+    <tr><td>name</td><td>text</td><td>Название</td></tr>
+    <tr><td>comment</td><td>text, nullable</td><td>Комментарий к альбому</td></tr>
+    <tr> <td>title_id</td> <td>uint</td> <td>Титульное изображение альбома. Пока не ясно, как строить иконки</td> </tr>
+  </tbody>
+  </table>
+
+  <h3>image_album</h3>
+  <p>
+    Кросс-таблица для включения изображений в альбом.
+    Возможен вес для порядка сортировки.
+  </p>
+
+
+  <h3>tag</h3>
+  <p>Теги, которые можно прикрепить к фреймам</p>
+  <table class="tbl">
+  <thead>
+    <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>id</td><td>uint</td><td>Уникальный индекс</td></tr>
+    <tr><td>label</td><td>text</td><td>Текст тега</td></tr>
+    <tr><td>t_create</td><td>Timestamp</td><td>Дата и время создания фрейма</td></tr>
+    <tr><td>t_modify</td><td>Timestamp</td><td>Дата и время модификации папки (но не её подчинённых элементов)</td></tr>
+  </tbody>
+  </table>
+
+  <h3>frame_tag</h3>
+  <p>Кросс-таблица для привязки тегов ко фреймам</p>
+  <table class="tbl">
+  <thead>
+    <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>id</td><td>uint</td><td>Уникальный индекс</td></tr>
+    <tr><td>frame_id</td><td>uint</td><td>Ссылка на фрейм - frame.id</td></tr>
+    <tr><td>tag_id</td><td>uint</td><td>Ссылка на тег - tag.id</td></tr>
+    <tr><td>t_create</td><td>Timestamp</td><td>Дата и время создания записи</td></tr>
+    <tr><td>t_modify</td><td>Timestamp</td><td>Дата и время модификации</td></tr>
+  </tbody>
+  </table>
+  
+  <h3>people</h3>
+  <p>Люди, которые присутствуют на фотографиях</p>
+  <table class="tbl">
+  <thead>
+    <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>id</td><td>uint</td><td>Уникальный индекс</td></tr>
+    <tr><td>last_name</td><td>text</td><td>Фамилия</td></tr>
+    <tr><td>first_name</td><td>text</td><td>Имя</td></tr>
+    <tr><td>mid_name</td><td>text</td><td>Отчество</td></tr>
+    <tr><td>gender</td> <td>int</td> <td>Пол</td> </tr>
+    <tr><td>t_create</td><td>Timestamp</td><td>Дата и время создания записи</td></tr>
+    <tr><td>t_modify</td><td>Timestamp</td><td>Дата и время модификации</td></tr>
+  </tbody>
+  </table>
+
+  <h3>frame_people</h3>
+  <p>Кросс-таблица для привязки людей ко фреймам</p>
+  <table class="tbl">
+  <thead>
+    <tr><th>Поле</th><th>Тип</th><th>Описание</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>id</td><td>uint</td><td>Уникальный индекс</td></tr>
+    <tr><td>people_id</td><td>uint</td><td>Ссылка на человека - people.id</td></tr>
+    <tr><td>frame_id</td><td>uint</td><td>Ссылка на фрейм - frame.id</td></tr>
+    <tr><td>x1, y1, x2, y2</td> <td>float</td> <td>Необяз рамка, указывающая человека на оригинале. В процентах от размера</td> </tr>
+    <tr><td>t_create</td><td>Timestamp</td><td>Дата и время создания записи</td></tr>
+    <tr><td>t_modify</td><td>Timestamp</td><td>Дата и время модификации</td></tr>
+  </tbody>
+  </table>
+  
+</body>
+</html>
