@@ -7,7 +7,7 @@ describe('prepareEmptyFolder', () => {
     const commonPath = path.join(__dirname, 'test');
     beforeAll(() => {
         if (!fs.existsSync(commonPath)) {
-            fs.mkdir(commonPath);
+            fs.mkdirSync(commonPath);
         }
     });
 

@@ -24,10 +24,10 @@ describe('createFrame', () => {
         await createFrameTable(db);
         const {id: folderId, fullFolderName: folderPath} = await createFolder(db, 0, testPath);
 
-        const frameId1 = await createFrame(db, folderId, 2);
+        const frameId1 = await createFrame(db, folderId, {role: 2});
         expect(frameId1).to.be.equal(1);
 
-        const frameId2 = await createFrame(db, folderId, 1);
+        const frameId2 = await createFrame(db, folderId, {role: 1});
         expect(frameId2).to.be.equal(2);
         const record = await sqliteGet(db, "SELECT * FROM frame WHERE id=?", [frameId2]);
         expect(record).to.have.property('id', frameId2);

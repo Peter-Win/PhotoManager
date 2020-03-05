@@ -23,16 +23,27 @@ const schemeFrame = {
         {name: 'lng', type: 'real'},
         {name: 'quality', type: 'integer'},
         {name: 'role', type: 'integer'}, // 1=image, 2=video
+        {name: 'mainFileId', type: 'id'},
+    ],
+};
+                   
+const schemeFile = {
+    name: 'file',
+    fields: [
+        {name: 'frameId', type: 'id'},
+        {name: 'ext', type: 'text'},
     ],
 };
 
 const schemesList = [
     schemeFolder,
     schemeFrame,
+    schemeFile,
 ];
 
 module.exports = {
     schemeFolder,
     schemeFrame,
+    schemeFile,
     schemesList,
 }
