@@ -10,13 +10,14 @@ const schemeFolder = {
         {name: 'ownerId', type: 'id'},
         {name: 'title', type: 'text'},
         {name: 'descr', type: 'text'},
+        {name: 'mainFrameId', type: 'id', comment: 'фрейм, который является иконкой папки'},
     ],
 };
 
 const schemeFrame = {
     name: 'frame',
     fields: [
-        {name: 'folderId', type: 'id'},
+        {name: 'folderId', type: 'id'}, // TODO: Нужен индекс
         {name: 'title', type: 'text'},
         {name: 'descr', type: 'text'},
         {name: 'lat', type: 'real' },
@@ -24,6 +25,7 @@ const schemeFrame = {
         {name: 'quality', type: 'integer'},
         {name: 'role', type: 'integer'}, // 1=image, 2=video
         {name: 'mainFileId', type: 'id'},
+        {name: 'dateTime', type: 'integer'}, // The date and time of image creation. GMT=0
     ],
 };
                    

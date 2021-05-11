@@ -9,9 +9,18 @@
       }
     ],
     "es2015",
-    "stage-0"
+    "stage-0",
+    "@babel/preset-typescript",
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "node": "current"
+        }
+      }
+    ]
   ],
-  "plugins": [],
+  "plugins": ["babel-plugin-rewire"],
   "env": {
     "start": {
       "presets": [

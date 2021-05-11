@@ -1,7 +1,11 @@
-const fs = require('fs')
-const path = require('path')
-const express = require('express')
-const app = express()
+const fs = require('fs');
+const path = require('path');
+const express = require('express');
+const app = express();
+const {requestHandler} = require('./rest/requestHandler');
+const {updateDb} = require('./db/updateDb');
+const {schemesList} = require('./db/schemes');
+const {createContext} = require('./createContext');
 
 // Minimum version of NodeJS = 12
 const ver = process.versions.node.split('.')[0];
@@ -15,30 +19,54 @@ Please, install a new version of Node.js.
 }
 
 // command line analys
-const argv = process.argv
-const bShow = !!argv.find(param => param === '-show')
-const bHelp = !!argv.find(param => param === '-h' || param === '-help' || param === '-?')
-const bOptions = !!argv.find(param => param[0] === '-')
-const iPort = argv.findIndex(param => param === '-p')
-const port = (iPort >= 0 ? argv[iPort + 1] : '') || '3000'
-const clientUrl = `http://localhost:${port}`
+const argv = process.argv;
+const bShow = !!argv.find(param => param === '-show');
+const bHelp = !!argv.find(param => param === '-h' || param === '-help' || param === '-?');
+const bOptions = !!argv.find(param => param[0] === '-');
+const iPort = argv.findIndex(param => param === '-p');
+const port = (iPort >= 0 ? argv[iPort + 1] : '') || '3000';
+const clientUrl = `http://localhost:${port}`;
 
+const context = createContext();
 
 // check client
 // Необходимо убедиться, что выполнен билд клиентской части приложения.
-const clientFilePath = path.join(__dirname, '../client/dist/index.html')
+const clientFilePath = path.join(__dirname, '../client/dist/index.html');
 try {
+    fs.accessSync(clientFilePath, fs.constants.R_OK);
     app.post('/rest/folder', (request, response) => {
-        const {handler} = require('./rest/postFolder');
-        handler.exec(request, response);
+        const {postFolder} = require('./rest/folder');
+        requestHandler(postFolder, request, response, context);
     });
-    fs.accessSync(clientFilePath, fs.constants.R_OK)
-    app.get('/:name', (request, response) => {
-        response.sendFile(path.join(__dirname, '../client/dist', request.params.name))
-    })
-    app.get('/', (request, response) => {
-        response.sendFile(clientFilePath)
-    })
+    app.get('/rest/folder/:id', (request, response) => {
+        const {getFolder} = require('./rest/folder');
+        requestHandler(getFolder, request, response, context);
+    });
+
+    // icons
+    app.get('/rest/icon/frame/:id', (request, response) => {
+        const {getFrameIcon} = require('./rest/icon');
+        requestHandler(getFrameIcon, request, response, context);
+    });
+    app.get('/rest/icon/folder/:id', (request, response) => {
+        const {getFolderIcon} = require('./rest/icon');
+        requestHandler(getFolderIcon, request, response, context);
+    });
+    app.get('/rest/icon/file/:id', (request, response) => {
+        const {getFileIcon} = require('./rest/icon');
+        requestHandler(getFileIcon, request, response, context);
+    });
+    app.get('/favicon.ico', (request, response) => {
+        response.sendFile(path.join(__dirname, '..', 'client', 'dist', 'favicon.ico'));
+    });
+
+    app.get('/res/:name', (request, response) => {
+        console.log('> resource', request.params.name);
+        response.sendFile(path.join(__dirname, '..', 'client', 'dist', 'res', request.params.name));
+    });
+    app.get('*', (request, response) => {
+        response.sendFile(clientFilePath);
+    });
 } catch (err) {
     console.log('*** General error detected: Application build required ***')
     app.get('/', (request, response) => response.sendFile(path.join(__dirname, 'instruction/build.html')))
@@ -65,5 +93,10 @@ if (bShow) {
     console.log('Open this URL in your browser:', clientUrl)
 }
 
-console.log('Use Ctrl+C to stop this server.')
-app.listen(port)
+console.log('Use Ctrl+C to stop this server.');
+
+const work = async () => {
+    await updateDb(context.db, schemesList);
+    app.listen(port);
+}
+work();

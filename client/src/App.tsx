@@ -1,5 +1,7 @@
 import * as React from "react";
+import {MainRouter} from "./Router";
+import "./style/main.css";
 
-export const App: React.FC = (props) => (
-    <h1>Photo Manager</h1>
+export const App: React.FC = () => (
+    <MainRouter />
 )

@@ -1,20 +1,24 @@
 const fs = require('fs');
+const {detectFormat} = require('../formats/detectFormat');
 
 /**
  * @param {FileHandle} fileHandle Описатель файла, полученный из openFile
  * @param {number} position
  * @return {number|null} Позиция начала блока EXIF в файле. Или null, если не найдено.
+ * 		Блок начинается с TIFF-заголовка. И соответствует базовой позиции.
  */
 const findExif = async (fileHandle, position = 0) => {
-	// Попытка определить JFIF-формат
-	const buffer = Buffer.alloc(2);
-	await fileHandle.read(buffer, 0, 2, position);
-	if (buffer.equals(jfifSignature)) {
+	const fmt = await detectFormat(fileHandle, position);
+	// JFIF
+	if (fmt === 'image/jpeg') {
 		return findExifInJFIF(fileHandle, position);
+	}
+	// TIFF or CR2
+	if (fmt === 'image/tiff') {
+		return position;
 	}
 	return null;
 };
-const jfifSignature = Buffer.from([0xFF, 0xD8]);
 
 const findExifInJFIF = async (fileHandle, position) => {
 	const buffer = Buffer.alloc(4);
@@ -32,15 +36,16 @@ const findExifInJFIF = async (fileHandle, position) => {
 		const len = buffer.readInt16BE(2);
 		if (buffer[1] === 0xE1) {
 			// Возможно, этот чанк содержит Exif
-			const buf2 = Buffer.alloc(4);
-			await fileHandle.read(buf2, 0, 4, curPos + 2);
+			const n = exifPrefix.length;
+			const buf2 = Buffer.alloc(n);
+			await fileHandle.read(buf2, 0, n, curPos + 2);
 			if (buf2.equals(exifPrefix)) {
-				return curPos + 2;
+				return curPos + 2 + exifPrefix.length;
 			}
 		}
 		curPos += len;
 	}
 };
-const exifPrefix = Buffer.from([0x45, 0x78, 0x69, 0x66]);
+const exifPrefix = Buffer.from([0x45, 0x78, 0x69, 0x66, 0, 0]);
 
 module.exports = {findExif};

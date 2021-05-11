@@ -9,9 +9,9 @@ describe('findExif', () => {
 		const fileHandle = await fs.promises.open(fileName, 'r');
 		try {
 			const exifPos = await findExif(fileHandle);
-			const buf = Buffer.alloc(4);
-			await fileHandle.read(buf, 0, 4, exifPos);
-			expect(buf.toString()).to.be.equal('Exif');
+			const buf = Buffer.alloc(2);
+			await fileHandle.read(buf, 0, 2, exifPos);
+			expect(buf.toString()).to.be.equal('II');
 		} finally {
 			fileHandle.close();
 		}

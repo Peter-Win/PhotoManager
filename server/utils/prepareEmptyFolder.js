@@ -14,6 +14,18 @@ const recursiveClear = async (folderName) => {
     }
 };
 
+const checkExists = async (dirPath) => {
+    try {
+        await fs.promises.access(dirPath, fs.constants.F_OK);
+    } catch (errAccess) {
+        // Папка не существует. Надо создать.
+        await checkExists(path.dirname(dirPath));
+        await fs.promises.mkdir(dirPath);
+        return false;
+    }
+    return true;
+}
+
 /**
  * Подготовить пустую папку
  * Если она не существует, то создается
@@ -21,15 +33,11 @@ const recursiveClear = async (folderName) => {
  * @param {string} fullFolderName Полный путь
  */
 const prepareEmptyFolder = async (fullFolderName) => {
-    try {
-        await fs.promises.access(fullFolderName, fs.constants.F_OK);
-    } catch (errAccess) {
-        // Папка не существует. Надо создать.
-        await fs.promises.mkdir(fullFolderName);
-        return;
+    const bExists = await checkExists(fullFolderName);
+    if (bExists) {
+        // Папка существует. Надо убрать содержимое
+        await recursiveClear(fullFolderName);
     }
-    // Папка существует. Надо убрать содержимое
-    await recursiveClear(fullFolderName);
 };
 
 module.exports = {prepareEmptyFolder};
